@@ -32,9 +32,15 @@ if prompt := st.chat_input("What is up?"):
   history.add("user", prompt)
   
   # Get llm answer
-  response = model.invoke(history.get(chat=True))
-  with st.chat_message("assistant"):
-    st.markdown(response.content)
+  content = []
+  def submit():
+    for chunk in model.stream(input=history.get(chat=True)):
+      text = chunk.content
+      content.append(text)
+      yield text
 
-  history.add("assistant", response.content)
+  with st.chat_message("assistant"):
+    st.write_stream(submit()) 
+
+  history.add("assistant", "".join(content))
   
